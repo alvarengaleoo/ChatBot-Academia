@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 import os
 from langchain_groq import ChatGroq
-from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 
 # Carregar as chaves APIs presentes no arquivo .env

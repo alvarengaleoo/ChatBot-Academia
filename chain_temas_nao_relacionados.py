@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
-
+import os
 from langchain_groq import ChatGroq
-from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 
 # Carregar as chaves APIs presentes no arquivo .env
@@ -10,7 +10,7 @@ load_dotenv()
 # --------------------------------------------------------------------------------
 
 # Instanciar um chatmodel para comunicarmos com os modelos LLMs
-model_atendimento_geral = ChatGroq(
+model_fora_do_tema = ChatGroq(
     model="llama-3.3-70b-versatile",
     temperature=0.2,
     api_key=os.getenv("GROQ_API_KEY")
