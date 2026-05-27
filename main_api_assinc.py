@@ -2,16 +2,14 @@ from chain_de_classificacao_e_roteamento import chain_de_roteamento
 from chain_personal import chain_personal
 from chain_atendimento_geral import chain_de_atendimento_geral
 from chain_temas_nao_relacionados import chain_temas_nao_relacionados
-from memoria_de_sistema import get_session_history, trimmer
+from memoria_sistema_assincrono import get_session_history, trimmer
 
 from operator import itemgetter
 from langchain_core.runnables import RunnableLambda, RunnableParallel, RunnablePassthrough
 from langchain_core.runnables.history import RunnableWithMessageHistory
 
 
-
-## Definindo a função de escolha de roteamento (nó que irá classificar a pergunta do usuário e mandar para o `braço`
-# correspondente do fluxo):
+## Definindo a função de escolha de roteamento
 def executa_roteamento(entrada: dict):
     if entrada["resposta_pydantic"].opcao == 1:
         print(f">> Opção classe Pydantic: {entrada['resposta_pydantic'].opcao} (Atendimento Geral)")
@@ -24,7 +22,7 @@ def executa_roteamento(entrada: dict):
         return RunnableLambda(lambda x: {"input_user": x['input'], "history": x['history']}) | chain_temas_nao_relacionados
 
 
-# Crie a cadeia final usando LangChain Expression Language (LCEL)
+# Cadeia final
 chain_principal = (RunnableParallel({"input": itemgetter("input"),
                                      "history": itemgetter("history"),
                                      "resposta_pydantic": chain_de_roteamento
@@ -32,26 +30,19 @@ chain_principal = (RunnableParallel({"input": itemgetter("input"),
                    | RunnableLambda(executa_roteamento))
 
 
-
-## Encapsulando nossa chain com a classe de gestão de mensagens de histórico
+# Chain com trimming
 chain_principal_com_trimming = (
     RunnablePassthrough.assign(history=itemgetter("history") | trimmer)
     | chain_principal
 )
 
+
+# Definindo o runnable com histórico
 runnable_with_history = RunnableWithMessageHistory(
     chain_principal_com_trimming,
     get_session_history,
     input_messages_key="input",
     history_messages_key="history",
 )
-# --------------------------------------------------------------------------------
 
-
-# Executando nossa chain principal.
-result = runnable_with_history.invoke(
-    {"input": "Você pode me ajusar com astrologia?"},
-    config={"configurable": {"session_id": "1"}},
-)
-print(result)
 
